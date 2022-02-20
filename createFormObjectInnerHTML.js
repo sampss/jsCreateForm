@@ -1,20 +1,33 @@
-// This createForm object uses createElement to create the elements in the DOM then uses a nesting function
-// to grab individual elements by their ID to nest other elements in.
+// This will be an object that creates a form using innerHTML, possibly used in server side to build a form using
+// js and an array of objects that defines the form elements.
 
-let createFormElements = {
+let createFormHTML = {
     credits: {
         initial: { name: 'Shawn Sampson', contribution: 'initial creation', },
     },
-    readme: 'Readme file on how to utilize the form creator',
-    completeForm: 'variable to hold the form as it is built',
+    readme: 'Readme file on how to utilize the form creator', // will add at end so readme is available in object
+    completeForm: '', // variable to hold form as it is built, starts as an empty string
     createDiv: function (thisObject) {
 
         //console.log('switch ran createDiv function');  // test switch function
 
-        // construct form div
-        let div = document.createElement('div');
-        div.id = thisObject.id;
-        div.classList.add('form-div');
+        if ( thisObject.closeDiv === true ){
+            this.completeForm += '</div>';
+        }else{
+
+            let divElement = '<div ';  // start creating the div element markup
+            if ( thisObject.elementId !== '' && thisObject.elementId !== undefined ){ divElement += 'id="'+thisObject.elementId+'" '; }
+            if ( thisObject.elementClass !== '' && thisObject.elementClass !== undefined ){ divElement += 'class="'+thisObject.elementClass+'" '; }
+            if ( thisObject.elementStyles !== '' && thisObject.elementStyles !== undefined ){ divElement += 'style="'+thisObject.elementStyles+'" '; }
+            let attributesList = Object.entries(thisObject.elementAttributes); // create array of arrays to put unique attributes.
+            for (const attribute of attributesList){ // for loop through array to add unique attributes
+                divElement += attribute[0]+'="';
+                divElement += attribute[1]+'" ';
+            }
+            divElement += '>';
+
+            this.completeForm += divElement;
+        }
 
 
     },
@@ -85,6 +98,10 @@ let createFormElements = {
                 arrayIndex++;  // move up in value to output the index in case of error
             }
         } else { console.log('Error: variable is not an array.  Array of objects required. //createForm.create') }
+
+
+        console.log('This is the end of the create function.');
+        console.log(this.completeForm);
     }
 
 }
@@ -95,18 +112,22 @@ let createFormElements = {
 // createForm test array
 
 let testArray = [{
-    elementType: '',
+    elementType: 'div',
     elementInputType: '',
-    elementId: '',
-    elementClass: '',
+    elementId: 'the-div',
+    elementClass: 'the-class',
     elementAction: '',
     elementMethod: '',
     elementEnctype: '',
     elementName: '',
     elementFor: '',
-    elementStyles: '',
-    elementAttributes: { attributeName: 'attributeValue', attributeName2: 'attributeValue2' },
-    elementParentId: '',
+    elementStyles: 'color:blue;',
+    elementAttributes: {attr: 'an attribute'},
+    closeDiv: false,
+    closeForm: false
+},{
+    elementType: 'div',
+    closeDiv: true,
 },];
 
-createFormElements.create(testArray);
+createFormHTML.create(testArray);
