@@ -5,26 +5,67 @@ let createFormHTML = {
     credits: {
         initial: { name: 'Shawn Sampson', contribution: 'initial creation', },
     },
+    utilityValidator:function (item, validateList){
+
+        let pass = true;
+        if (Array.isArray(validateList)) {
+            for (let validItem of validateList) {
+
+                if (pass) {  // if one item does not pass skip running the switch check on the rest
+                    switch (validItem) {
+                        case 'emptyString': {
+                            if (item === '') {
+                                pass = false;
+                            }
+                            break;
+                        }
+                        case 'isString': {
+                            if (typeof item !== 'string') {
+                                pass = false;
+                            }
+                            break;
+                        }
+                        case 'isObject': {
+                            pass = typeof item == 'object' && item instanceof Object && !(item instanceof Array);
+                            break;
+                        }
+                        case 'isArray': {
+                            pass = !!Array.isArray(item);
+                            break;
+                        }
+
+                    }
+                }
+            }
+        }else{ console.log('Error, validate list is not an array'); }
+
+        return pass;  // return true or false if all criteria are met or one is failed
+    },
     readme: 'Readme file on how to utilize the form creator', // will add at end so readme is available in object
     completeForm: '', // variable to hold form as it is built, starts as an empty string
     createDiv: function (thisObject) {
 
         //console.log('switch ran createDiv function');  // test switch function
 
-        if ( thisObject.closeDiv === true ){
+        if ( thisObject.closeElement === true ){
             this.completeForm += '</div>';
         }else{
 
             let divElement = '<div ';  // start creating the div element markup
-            if ( thisObject.elementId !== '' && thisObject.elementId !== undefined ){ divElement += 'id="'+thisObject.elementId+'" '; }
-            if ( thisObject.elementClass !== '' && thisObject.elementClass !== undefined ){ divElement += 'class="'+thisObject.elementClass+'" '; }
-            if ( thisObject.elementStyles !== '' && thisObject.elementStyles !== undefined ){ divElement += 'style="'+thisObject.elementStyles+'" '; }
-            let attributesList = Object.entries(thisObject.elementAttributes); // create array of arrays to put unique attributes.
-            for (const attribute of attributesList){ // for loop through array to add unique attributes
-                divElement += attribute[0]+'="';
-                divElement += attribute[1]+'" ';
-            }
+            // check that attribute data is presented in proper format and not empty
+            if ( this.utilityValidator(thisObject.elementId, ['isString', 'emptyString'])){ divElement += 'id="'+thisObject.elementId+'" '; }
+            if ( thisObject.elementClass !== '' && typeof thisObject.elementClass === 'string' ){ divElement += 'class="'+thisObject.elementClass+'" '; }
+            if ( thisObject.elementStyles !== '' && typeof thisObject.elementStyles === 'string' ){ divElement += 'style="'+thisObject.elementStyles+'" '; }
+            if ( thisObject.elementAttributes !== undefined ){  // prevent undefined error
+                let attributesList = Object.entries(thisObject.elementAttributes); // create array of arrays to put unique attributes.
+                for (const attribute of attributesList){ // for loop through array to add unique attributes
+                    divElement += attribute[0]+'="';
+                    divElement += attribute[1]+'" ';
+            }}
             divElement += '>';
+            if ( thisObject.elementComment !== '' && typeof thisObject.elementComment === 'string' ){ divElement += '<!-- '+thisObject.elementComment+' -->'; }
+            // add inner html in string format or text inside element.  may need to make sure it is a string
+            if ( thisObject.elementInnerHTML !== '' && typeof thisObject.elementInnerHTML === 'string' ){ divElement += thisObject.elementInnerHTML; }
 
             this.completeForm += divElement;
         }
@@ -38,12 +79,12 @@ let createFormHTML = {
         // first iterate over each item in the array using a foreach loop.
         // It runs each function based on the object type using the js switch method.
 
-        if (Array.isArray(formArray)){  // make sure an array is passed to this function
+        if (this.utilityValidator(formArray,['isArray'])){  // make sure an array is passed to this function
             let arrayIndex = 0;  // set an index for the array
             for (let thisObject of formArray) {
 
                 // check to see if the array item is an object
-                if(typeof thisObject == 'object' && thisObject instanceof Object && !(thisObject instanceof Array)) {
+                if(this.utilityValidator(thisObject, ['isObject'])) {
 
                     switch (thisObject.elementType) {
                         case 'div': {
@@ -114,7 +155,7 @@ let createFormHTML = {
 let testArray = [{
     elementType: 'div',
     elementInputType: '',
-    elementId: 'the-div',
+    elementId: 'the-id',
     elementClass: 'the-class',
     elementAction: '',
     elementMethod: '',
@@ -123,11 +164,15 @@ let testArray = [{
     elementFor: '',
     elementStyles: 'color:blue;',
     elementAttributes: {attr: 'an attribute'},
-    closeDiv: false,
-    closeForm: false
+    closeElement: false,
+    elementComment:'This is a comment after the div opening tag', // if there should be a comment at the end of the element, typically add with closeDiv=true
+    elementInnerHTML: '',
 },{
     elementType: 'div',
-    closeDiv: true,
+    elementComment:'This is a comment after the div closing tag',
+    closeElement: true,
 },];
 
 createFormHTML.create(testArray);
+
+//typeof thisObject == 'object' && thisObject instanceof Object && !(thisObject instanceof Array)
